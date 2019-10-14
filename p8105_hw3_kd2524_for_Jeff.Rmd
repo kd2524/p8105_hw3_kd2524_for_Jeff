@@ -31,14 +31,40 @@ plot(pressure)
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
-##Problem 1: Actions are followed by code chunks
-* Actions
--Loading the data from the p8105.datasets (not from a local file)
-
-* Code Chunk*
+###Problem 1: Actions are followed by code chunks
+##Actions
+#Loading the data from the p8105.datasets (not from a local file)
 ```{r pressure, echo=FALSE}
 library(tidyverse)
 library(p8105.datasets)
 data_frame(instacart) 
 ```
+##Actions: Provide code to complete a summary
+#Run code to provide a summary of the dataset
+```{r pressure, echo=FALSE}
+library(tidyverse)
+summarise(data.frame(instacart))
+```
+#Variable names
+```{r pressure, echo=FALSE}
+library(tidyverse)
+names(data.frame(instacart))   
+```
+#Data dimension: rows x columns; here: 1384617 rows and 15 columns
+```{r pressure, echo=FALSE}
+library(tidyverse)
+nrow(data.frame(instacart))
+ncol(data.frame(instacart))
+```
+# Check for missing values: in this dataset there are no missing values
+```{r pressure, echo=FALSE}
+library(tidyverse)
+anyNA(data.frame(instacart))
+```
+# Examine the classes of each column
+```{r pressure, echo=FALSE}
+library(tidyverse)
+str(data.frame(instacart))
+```
+
 
