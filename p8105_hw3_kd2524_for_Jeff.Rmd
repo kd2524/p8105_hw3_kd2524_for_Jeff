@@ -37,34 +37,90 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 ```{r pressure, echo=FALSE}
 library(tidyverse)
 library(p8105.datasets)
-data_frame(instacart) 
+data.frame("instacart") 
+instacart_df=instacart
 ```
 ##Actions: Provide code to complete a summary
-#Run code to provide a summary of the dataset
-```{r pressure, echo=FALSE}
-library(tidyverse)
-summarise(data.frame(instacart))
-```
+
 #Variable names
 ```{r pressure, echo=FALSE}
 library(tidyverse)
-names(data.frame(instacart))   
+names(instacart_df)   
 ```
 #Data dimension: rows x columns; here: 1384617 rows and 15 columns
 ```{r pressure, echo=FALSE}
 library(tidyverse)
-nrow(data.frame(instacart))
-ncol(data.frame(instacart))
+nrow(instacart_df)
+ncol(instacart_df)
 ```
 # Check for missing values: in this dataset there are no missing values
 ```{r pressure, echo=FALSE}
 library(tidyverse)
-anyNA(data.frame(instacart))
+anyNA(instacart_df)
 ```
-# Examine the classes of each column
+# Examine the classes of each column: there are 11 integer variables and 4 character variables.
 ```{r pressure, echo=FALSE}
 library(tidyverse)
 str(data.frame(instacart))
 ```
+# Summary: Data overview
+# The instacart dataset is contains`r nrow(instacart_df)`rows (1384617 observations)  and `r ncol(instacart_df)` (15) columns. The list of the data variable is  `r names(instacart_df)`. The dataset has `r anyNA(instacart_df)` missing data (no missing data). The data overall has `r str(instacart_df)` (there are 11 integer and 4 character variables). Each row in the dataset is a specific product order that is given a a description (product name), a category (department) and type of product as well as product names. The data includes date and time of order of the products and also order in which the consumers ordered particular products. Key variables are those that help identify consumers' habits for orders. Variables "reordered" "days_since_prior_order" by "aisle"   helps identify which items are ordered more often, and which are the least preferable items. Variables "order_dow", "days_since_prior_order"  whether consumer have a tendency to order certain items at a particular time of the day and/or specific days of the week. 
 
+# There are `r nrow(aisle_num_instacart)` aisles (134 in this dataset). The highest number of orders are from the  "Fresh Vegetables" aisle,the second highest are from the "Fresh Fruits" aisle. The third highest number of orders are from the "Packaged Vegetables Fruits" aisle, and the fourth highest number of orders is from the yogurt aisle.
 
+```{r}
+aisle_num_instacart = instacart_df %>%
+  select(aisle) %>%
+  count(aisle, name = "aisle_num") %>%
+  arrange(desc(aisle_num))
+```
+#Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+```{r}
+aisle_plot_instacart = aisle_num_instacart %>%
+  filter(aisle_num > 10000) %>%
+  mutate(rank = rank(-aisle_num))
+ggplot(aisle_plot_instacart, aes(x = rank, y = aisle_num)) +
+    geom_point(aes(color = aisle)) +
+    labs(title = " Aisles & Customer Orders",
+      x = "Ranking Aisles on Number of Orders",
+      y = "Number of Orders",
+      caption = "Instacart")
+```
+#Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+
+```{r}
+popular3_items = instacart_df %>%
+  select(aisle, product_name) %>%
+  filter(aisle == "baking ingredients" | aisle == "dog food care" | aisle == "packaged vegetables fruits") %>%
+  count(aisle, product_name, name = "pop_item")
+
+popular3_items_table = popular3_items %>%
+  group_by(aisle) %>%
+  mutate(rank = order(order(pop_item, decreasing=TRUE))) %>%
+  filter(rank < 4) %>%
+  arrange(aisle, desc(pop_item))
+knitr::kable(
+  popular3_items_table, caption = '3 Most Popular Items in Bakery, Dog Food & Packaged Vegetable Aisles.')
+```
+#	Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).*
+
+```{r}
+PLApples_coffee_dat_time = instacart_df %>% 
+  select(product_name, order_dow, order_hour_of_day) %>%
+  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>%
+  group_by(product_name, order_dow) %>%
+  summarize(mean_hour = mean(order_hour_of_day)) %>%
+  mutate(order_dow = case_when(
+    order_dow == "0" ~ "Sunday",
+    order_dow == "1" ~ "Monday",
+    order_dow == "2" ~ "Tuesday",
+    order_dow == "3" ~ "Wednesday",
+    order_dow == "4" ~ "Thursday",
+    order_dow == "5" ~ "Friday",
+    order_dow == "6" ~ "Saturday"))
+PLApples_coffee_dat_time_table = PLApples_coffee_dat_time %>% 
+  pivot_wider(names_from = "order_dow",
+    values_from = "mean_hour")
+knitr::kable(PLApples_coffee_dat_time_table, caption = 'Mean hour of the day for Pink Apple and Coffee Orders')
+```
+ 
