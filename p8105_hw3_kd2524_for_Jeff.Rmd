@@ -66,6 +66,7 @@ str(data.frame(instacart))
 # Summary: Data overview
 # The instacart dataset is contains`r nrow(instacart_df)`rows (1384617 observations)  and `r ncol(instacart_df)` (15) columns. The list of the data variable is  `r names(instacart_df)`. The dataset has `r anyNA(instacart_df)` missing data (no missing data). The data overall has `r str(instacart_df)` (there are 11 integer and 4 character variables). Each row in the dataset is a specific product order that is given a a description (product name), a category (department) and type of product as well as product names. The data includes date and time of order of the products and also order in which the consumers ordered particular products. Key variables are those that help identify consumers' habits for orders. Variables "reordered" "days_since_prior_order" by "aisle"   helps identify which items are ordered more often, and which are the least preferable items. Variables "order_dow", "days_since_prior_order"  whether consumer have a tendency to order certain items at a particular time of the day and/or specific days of the week. 
 
+#Actions and code provide answers to the questions in Problem 1.
 # There are `r nrow(aisle_num_instacart)` aisles (134 in this dataset). The highest number of orders are from the  "Fresh Vegetables" aisle,the second highest are from the "Fresh Fruits" aisle. The third highest number of orders are from the "Packaged Vegetables Fruits" aisle, and the fourth highest number of orders is from the yogurt aisle.
 
 ```{r}
@@ -121,6 +122,173 @@ PLApples_coffee_dat_time = instacart_df %>%
 PLApples_coffee_dat_time_table = PLApples_coffee_dat_time %>% 
   pivot_wider(names_from = "order_dow",
     values_from = "mean_hour")
-knitr::kable(PLApples_coffee_dat_time_table, caption = 'Mean hour of the day for Pink Apple and Coffee Orders')
 ```
+ 
+         		               
+###Problem 2: Actions are followed by code chunks
+
+#Loading the data from the p8105.datasets (not from a local file)
+```{r pressure, echo=FALSE}
+library(tidyverse)
+library(p8105.datasets)
+data.frame("brfss_smart2010") 
+brfss_df=brfss_smart2010
+```
+# Action: Data cleaning 
+
+```{r}
+brfss_df_clean = brfss_df %>%
+  janitor::clean_names() %>% 
+  filter(topic == "Overall Health") %>%
+  filter(response == "Poor" | response == "Fair" | response == "Good" | response == "Very good" | response == "Excellent") %>%
+  mutate(response_factor_ordered = factor(response, ordered = TRUE, levels = c("Poor", "Fair", "Good", "Very good", "Excellent")))
+```
+
+#In 2002, which states were observed at 7 or more locations? In 2002, the following states were observed at 7 or more locations: CT, FL,MA, NC, NJ, PA.
+
+```{r}
+brfss_loc_2002 = brfss_df_clean %>%
+  filter(year == 2002) %>%
+  group_by(locationabbr) %>%
+  summarise(num_loc = n_distinct(locationdesc))
+```
+
+# Which states were observed at 7 or more locations, in 2010? In 2010,the following states were observed at 7 or more locations: Ca, CO, FL, MA, MD, NC, NE, NJ, NY, OH, PA, SC, TX, WA.
+```{r}
+brfss_loc_2010 = brfss_df_clean %>%
+  filter(year == 2010) %>%
+  group_by(locationabbr) %>%
+  summarise(num_loc = n_distinct(locationdesc))
+```
+
+#Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
+```{r}
+excel_respond_brfss = brfss_df_clean %>%
+  filter(response == "Excellent") %>%
+  rename(state = locationabbr) %>%
+  group_by(state, year) %>%
+  mutate(ave_data_value_loc_state = mean(data_value)) %>%
+  select(year, state, ave_data_value_loc_state) %>%
+  drop_na()
+```
+#Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help)
+```{r}
+ggplot(excel_respond_brfss, aes(x = year, 
+    y = ave_data_value_loc_state, color = state)) +
+    geom_point() +
+    geom_line() +
+    labs(title = "Average Data Value per State per Year",x = "Year",
+      y = "Average Data Value", caption = "BRFSS_ SMART2010")
+```
+
+#Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
+
+#First create the data subset.
+
+```{r}
+value_respond_brfss = brfss_df_clean %>%
+  filter(year == 2006 | year == 2010) %>%
+  filter(locationabbr == "NY")
+```
+#Then the two panel plot.
+#Box plot
+```{r}
+ggplot(value_respond_brfss, aes(x = response_factor_ordered, y = data_value)) + 
+  geom_boxplot() +
+  facet_grid(. ~ year) +
+  labs(title = "Data Distribution by Response_BOX PLOT",
+      x = "Response",
+      y = "Data Values",
+      caption = "BRFSS_ SMART2010")
+```
+#Violin Plot
+```{r}
+ggplot(value_respond_brfss, aes(x = response_factor_ordered, y = data_value)) + 
+  geom_violin(aes(fill = response_factor_ordered), color = "blue", alpha = .5) + 
+  stat_summary(fun.y = median, geom = "point", color = "red", size = 4) +
+  labs(title = "Data Distribution by Response_VIOLIN PLOT",
+      x = "Response",
+      y = "Data Values",
+      caption = "BRFSS_ SMART2010")
+```
+
+
+## Problem 3
+
+#Load 5 weeks worth of accelerometer data from a 63 year old man with congestive heart failure admitted 
+
+#Loading the data from the p8105.datasets (not from a local file)
+
+```{r pressure, echo=FALSE}
+library(tidyverse)
+accel_data = read_csv("./accel_data.csv") %>% 
+  janitor:: clean_names()
+```
+#Tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+#The data set contains `r nrow(accel_data_tidy)` observations.
+#The data variabls are: week (1-5 (base on the description), day_of_week (Sunday - Saturday, as ordinal variable), day_type (weekday or weekend), hour_of_day (0-23), minute_of_day (1-1440), and activity_count, which counts the activities that occured during a particular minute.*
+
+```{r}
+accel_data_tidy = accel_data %>%
+  pivot_longer(
+  activity_1:activity_1440, 
+  names_to = "minute", 
+  names_prefix = "activity_", 
+  values_to = "activity_count") %>% 
+  mutate(
+  day_type = ifelse(day %in% c("Saturday", "Sunday"), "weekend", "weekday"),
+  day_ordered = factor(day, ordered = TRUE, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
+  minute_of_day = as.numeric(minute),
+  hour_of_day = as.integer(minute_of_day/60)
+  ) %>%
+  select("week", "day_ordered", "day_type", "minute_of_day", "hour_of_day", "activity_count") %>%
+  arrange(week, day_ordered)
+```
+
+#Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+
+```{r}
+activity_table = accel_data_tidy %>% 
+  group_by(week, day_ordered) %>% 
+  summarize(activity_day_tot = sum(activity_count)) %>%
+  select(week, day_ordered, activity_day_tot)
+```
+
+
+```{r}
+ggplot(activity_table, aes(x = day_ordered, y = activity_day_tot)) +
+  geom_point() +
+  facet_grid(. ~ week) +
+  labs(title = "Daily Total Activity: Weeks 1-5",
+    x = "Day of Week",
+    y = "Total Activity",
+    caption = "Accelerometer Data")
+```
+ 
+#I do not observe any clear patterns across the five weeks.
+
+
+*Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.*
+
+#I was not able to make a readable single-panel plot which contains 24hr activity for each  day of the study. I have created instead hourly data aggregated across the five weeks for each weekday and weekend day.
+
+```{r}
+time_course_24hr_plot = accel_data_tidy %>%
+  group_by(day_ordered, hour_of_day) %>% 
+  summarize(total_activity_hour = sum(activity_count)) %>%
+  select(day_ordered, hour_of_day, total_activity_hour) %>%
+  arrange(day_ordered, hour_of_day)
+ggplot(time_course_24hr_plot, aes(x = hour_of_day, y = total_activity_hour, color = day_ordered)) + 
+  geom_line() + 
+  labs(
+    title = "Activity Counts Over 24 Hour Period, by Day of Week",
+    x = "Hour of Day",
+    y = "Activity Count",
+    caption = "Accelerometer Data")
+```
+
+Activity increases afer 5 am (for weekdays and weekends). Activity activity decreases after after hour 20 (8pm) and is almost zero between ~12am until 5am (most likely sleep time).  Moderate activity levels are maintained through noon to early afternoon across weekdays and weekends. There is a spike in activity levels between 8-10am and 7-8 pm relfecting routines that may be connected with morning and evening therapies or routines that relate to eating, hygiene and therapy. 
+
+
+
  
