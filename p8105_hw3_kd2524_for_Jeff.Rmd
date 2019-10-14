@@ -100,8 +100,6 @@ popular3_items_table = popular3_items %>%
   mutate(rank = order(order(pop_item, decreasing=TRUE))) %>%
   filter(rank < 4) %>%
   arrange(aisle, desc(pop_item))
-knitr::kable(
-  popular3_items_table, caption = '3 Most Popular Items in Bakery, Dog Food & Packaged Vegetable Aisles.')
 ```
 #	Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).*
 
@@ -239,8 +237,7 @@ accel_data_tidy = accel_data %>%
   day_type = ifelse(day %in% c("Saturday", "Sunday"), "weekend", "weekday"),
   day_ordered = factor(day, ordered = TRUE, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
   minute_of_day = as.numeric(minute),
-  hour_of_day = as.integer(minute_of_day/60)
-  ) %>%
+  hour_of_day = as.integer(minute_of_day/60)) %>%
   select("week", "day_ordered", "day_type", "minute_of_day", "hour_of_day", "activity_count") %>%
   arrange(week, day_ordered)
 ```
@@ -273,15 +270,15 @@ ggplot(activity_table, aes(x = day_ordered, y = activity_day_tot)) +
 #I was not able to make a readable single-panel plot for the 24hr activity for each  day of the study of each of the five weeks. Instead, I have created hourly data aggregated across the five weeks for each weekday and weekend day.
 
 ```{r}
-time_course_24hr_plot = accel_data_tidy %>%
+time_whole_day_plot = accel_data_tidy %>%
   group_by(day_ordered, hour_of_day) %>% 
   summarize(total_activity_hour = sum(activity_count)) %>%
   select(day_ordered, hour_of_day, total_activity_hour) %>%
   arrange(day_ordered, hour_of_day)
-ggplot(time_course_24hr_plot, aes(x = hour_of_day, y = total_activity_hour, color = day_ordered)) + 
+ggplot(time_whole_day_plot, aes(x = hour_of_day, y = total_activity_hour, color = day_ordered)) + 
   geom_line() + 
   labs(
-    title = "Activity Counts Over 24 Hour Period, by Day of Week",
+    title = "Total Activity Counts Day of Week",
     x = "Hour of Day",
     y = "Activity Count",
     caption = "Accelerometer Data")
