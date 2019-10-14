@@ -270,7 +270,7 @@ ggplot(activity_table, aes(x = day_ordered, y = activity_day_tot)) +
 
 *Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.*
 
-#I was not able to make a readable single-panel plot which contains 24hr activity for each  day of the study. I have created instead hourly data aggregated across the five weeks for each weekday and weekend day.
+#I was not able to make a readable single-panel plot for the 24hr activity for each  day of the study of each of the five weeks. Instead, I have created hourly data aggregated across the five weeks for each weekday and weekend day.
 
 ```{r}
 time_course_24hr_plot = accel_data_tidy %>%
